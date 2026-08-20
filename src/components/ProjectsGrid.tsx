@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { PROJECTS } from '@/data/portfolioData';
 import { ProjectCategory } from '@/lib/types';
-import { ExternalLink, Layers, Search, Radio } from 'lucide-react';
-import { SpotlightCard } from './ui/VisualEffects';
+import { ExternalLink, Layers, Search } from 'lucide-react';
+import { SpotlightCard, ScrollReveal } from './ui/VisualEffects';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES: { id: ProjectCategory; label: string }[] = [
@@ -31,72 +31,78 @@ export function ProjectsGrid() {
   return (
     <section id="projects" className="py-12 border-b border-zinc-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
-              <Layers className="w-3.5 h-3.5" />
-              Production Systems Catalog
+        <ScrollReveal>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
+                <Layers className="w-3.5 h-3.5" />
+                Production Systems Catalog
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Deployed AI Architectures ({PROJECTS.length})
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
+                Every system is live, open-sourced, and engineered to solve a distinct commercial or technical challenge.
+              </p>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Deployed AI Architectures ({PROJECTS.length})
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
-              Every system is live, open-sourced, and engineered to solve a distinct commercial or technical challenge.
-            </p>
+
+            {/* Search Input with Hover Ring */}
+            <div className="relative w-full md:w-64">
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by model or stack..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition duration-200"
+              />
+            </div>
           </div>
 
-          {/* Search Input with Hover Ring */}
-          <div className="relative w-full md:w-64">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by model or stack..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition duration-200"
-            />
+          {/* Category Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`relative px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors duration-200 ${
+                  activeCategory === cat.id
+                    ? 'text-white'
+                    : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
+                }`}
+              >
+                {activeCategory === cat.id && (
+                  <motion.div
+                    layoutId="activeCategoryPill"
+                    className="absolute inset-0 bg-indigo-600 rounded-xl shadow-md shadow-indigo-950"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 font-semibold">{cat.label}</span>
+              </button>
+            ))}
           </div>
-        </div>
+        </ScrollReveal>
 
-        {/* Category Pills with Animated Active Pill */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors duration-200 ${
-                activeCategory === cat.id
-                  ? 'text-white'
-                  : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
-              }`}
-            >
-              {activeCategory === cat.id && (
-                <motion.div
-                  layoutId="activeCategoryPill"
-                  className="absolute inset-0 bg-indigo-600 rounded-xl shadow-md shadow-indigo-950"
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10 font-semibold">{cat.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Projects Bento Grid with Dynamic Spotlight Cards */}
+        {/* Projects Bento Grid with Staggered Viewport Swoop */}
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <AnimatePresence>
-            {filteredProjects.map((p) => (
+            {filteredProjects.map((p, idx) => (
               <motion.div
                 key={p.id}
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.25 }}
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{
+                  duration: 0.45,
+                  delay: (idx % 3) * 0.1, // Stagger left-to-right columns
+                  ease: [0.21, 0.47, 0.32, 0.98]
+                }}
               >
                 <SpotlightCard className="p-5 flex flex-col justify-between h-full group">
                   <div>
-                    {/* Header Badge & Dynamic Pulse */}
+                    {/* Header Badge & Pulse */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
                         {p.badge}
@@ -123,8 +129,8 @@ export function ProjectsGrid() {
 
                     {/* Architecture Bullets */}
                     <ul className="mt-3.5 space-y-1.5 text-[11px] text-zinc-400">
-                      {p.architectureHighlights.slice(0, 3).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
+                      {p.architectureHighlights.slice(0, 3).map((item, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
                           <span className="text-indigo-400 font-bold">&bull;</span>
                           <span>{item}</span>
                         </li>
@@ -134,11 +140,10 @@ export function ProjectsGrid() {
 
                   {/* Footer / Tech Stack & Links */}
                   <div className="mt-5 pt-4 border-t border-zinc-800/80">
-                    {/* Tech Stack Pills */}
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {p.techStack.map((tech, idx) => (
+                      {p.techStack.map((tech, i) => (
                         <span
-                          key={idx}
+                          key={i}
                           className="px-2 py-0.5 rounded bg-zinc-800/80 text-[10px] font-mono text-zinc-300 border border-zinc-700/40"
                         >
                           {tech}
@@ -146,7 +151,6 @@ export function ProjectsGrid() {
                       ))}
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex items-center gap-2">
                       {p.liveUrl && (
                         <motion.a
