@@ -3,6 +3,8 @@
 import React from 'react';
 import { SKILL_CATEGORIES } from '@/data/portfolioData';
 import { Bot, Layers, Sparkles, Zap } from 'lucide-react';
+import { SpotlightCard } from './ui/VisualEffects';
+import { motion } from 'framer-motion';
 
 export function TechnicalArsenal() {
   const getIcon = (name: string) => {
@@ -33,7 +35,7 @@ export function TechnicalArsenal() {
         {/* Skill Matrix Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {SKILL_CATEGORIES.map((cat, idx) => (
-            <div key={idx} className="rounded-2xl bg-zinc-900/60 border border-zinc-800 p-5 flex flex-col gap-4">
+            <SpotlightCard key={idx} className="p-5 flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
                 {getIcon(cat.iconName)}
                 <h3 className="text-sm font-bold text-white">{cat.title}</h3>
@@ -41,9 +43,10 @@ export function TechnicalArsenal() {
 
               <div className="space-y-2">
                 {cat.skills.map((s, i) => (
-                  <div
+                  <motion.div
                     key={i}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-850 text-xs"
+                    whileHover={{ x: 2 }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-850 hover:border-zinc-700 text-xs transition"
                   >
                     <span className={`font-medium ${s.highlight ? 'text-indigo-300 font-semibold' : 'text-zinc-300'}`}>
                       {s.name}
@@ -51,10 +54,10 @@ export function TechnicalArsenal() {
                     <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-wider">
                       {s.level}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </div>

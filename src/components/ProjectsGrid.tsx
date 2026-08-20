@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { PROJECTS } from '@/data/portfolioData';
 import { ProjectCategory } from '@/lib/types';
-import { ExternalLink, Layers, Search } from 'lucide-react';
+import { ExternalLink, Layers, Search, Radio } from 'lucide-react';
+import { SpotlightCard } from './ui/VisualEffects';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES: { id: ProjectCategory; label: string }[] = [
   { id: 'all', label: 'All Systems' },
@@ -43,7 +45,7 @@ export function ProjectsGrid() {
             </p>
           </div>
 
-          {/* Search Input */}
+          {/* Search Input with Hover Ring */}
           <div className="relative w-full md:w-64">
             <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -51,117 +53,136 @@ export function ProjectsGrid() {
               placeholder="Search by model or stack..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition duration-200"
             />
           </div>
         </div>
 
-        {/* Category Pills */}
+        {/* Category Pills with Animated Active Pill */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition ${
+              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors duration-200 ${
                 activeCategory === cat.id
-                  ? 'bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-950'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'text-white'
+                  : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
               }`}
             >
-              {cat.label}
+              {activeCategory === cat.id && (
+                <motion.div
+                  layoutId="activeCategoryPill"
+                  className="absolute inset-0 bg-indigo-600 rounded-xl shadow-md shadow-indigo-950"
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 font-semibold">{cat.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Projects Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProjects.map((p) => (
-            <div
-              key={p.id}
-              className="rounded-2xl bg-zinc-900/60 border border-zinc-800/80 hover:border-indigo-500/40 p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-xl hover:shadow-indigo-950/20 group"
-            >
-              <div>
-                {/* Header Badge */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
-                    {p.badge}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Live Deployed
+        {/* Projects Bento Grid with Dynamic Spotlight Cards */}
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <AnimatePresence>
+            {filteredProjects.map((p) => (
+              <motion.div
+                key={p.id}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.25 }}
+              >
+                <SpotlightCard className="p-5 flex flex-col justify-between h-full group">
+                  <div>
+                    {/* Header Badge & Dynamic Pulse */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                        {p.badge}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Live Deployed
+                      </div>
+                    </div>
+
+                    {/* Title & Tagline */}
+                    <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition duration-200">
+                      {p.title}
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium mt-1">
+                      {p.tagline}
+                    </p>
+
+                    {/* Problem Solved */}
+                    <div className="mt-3.5 p-3 rounded-xl bg-zinc-950/80 border border-zinc-850 text-xs text-zinc-300 leading-relaxed">
+                      <strong className="text-indigo-400 block font-semibold mb-1">Problem Solved:</strong>
+                      {p.problemSolved}
+                    </div>
+
+                    {/* Architecture Bullets */}
+                    <ul className="mt-3.5 space-y-1.5 text-[11px] text-zinc-400">
+                      {p.architectureHighlights.slice(0, 3).map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 font-bold">&bull;</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
 
-                {/* Title & Tagline */}
-                <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition">
-                  {p.title}
-                </h3>
-                <p className="text-xs text-zinc-400 font-medium mt-1">
-                  {p.tagline}
-                </p>
+                  {/* Footer / Tech Stack & Links */}
+                  <div className="mt-5 pt-4 border-t border-zinc-800/80">
+                    {/* Tech Stack Pills */}
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {p.techStack.map((tech, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded bg-zinc-800/80 text-[10px] font-mono text-zinc-300 border border-zinc-700/40"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
 
-                {/* Problem Solved */}
-                <div className="mt-3.5 p-3 rounded-xl bg-zinc-950 border border-zinc-850 text-xs text-zinc-300 leading-relaxed">
-                  <strong className="text-indigo-400 block font-semibold mb-1">Problem Solved:</strong>
-                  {p.problemSolved}
-                </div>
-
-                {/* Architecture Bullets */}
-                <ul className="mt-3.5 space-y-1.5 text-[11px] text-zinc-400">
-                  {p.architectureHighlights.slice(0, 3).map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-1.5">
-                      <span className="text-indigo-400 font-bold">&bull;</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Footer / Tech Stack & Links */}
-              <div className="mt-5 pt-4 border-t border-zinc-800/80">
-                {/* Tech Stack Pills */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {p.techStack.map((tech, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 rounded bg-zinc-800/80 text-[10px] font-mono text-zinc-300"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Buttons */}
-                <div className="flex items-center gap-2">
-                  {p.liveUrl && (
-                    <a
-                      href={p.liveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-950 transition"
-                    >
-                      <span>Live Demo</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                  {p.githubUrl && (
-                    <a
-                      href={p.githubUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition"
-                    >
-                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                      </svg>
-                      <span>Code</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      {p.liveUrl && (
+                        <motion.a
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          href={p.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-950 transition"
+                        >
+                          <span>Live Demo</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </motion.a>
+                      )}
+                      {p.githubUrl && (
+                        <motion.a
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          href={p.githubUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700/50 transition"
+                        >
+                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                          </svg>
+                          <span>Code</span>
+                        </motion.a>
+                      )}
+                    </div>
+                  </div>
+                </SpotlightCard>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </section>
   );
